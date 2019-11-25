@@ -17,6 +17,8 @@ import javax.swing.JPasswordField;
 
 public class Scraper {
 	
+	public static boolean weekChecker;
+	public static int weekNum;
 	public static void main(String[] args) throws InterruptedException {
 		System.setProperty("webdriver.chrome.driver", "C://Selenium//chromedriver.exe");
 		WebDriver driver = new ChromeDriver();
@@ -42,6 +44,9 @@ public class Scraper {
 
 		if (button == JOptionPane.OK_OPTION) {
 		    char[] input = jpf.getPassword();
+		    
+		    
+		    
 		  String pass = String.copyValueOf(input);
 	
 		
@@ -67,23 +72,47 @@ public class Scraper {
 		Thread.sleep(1000);
 		
 		
-		for(int i=1; i< 7;i++) {
-			String table = driver.findElement(By.xpath("/html/body/table["+ i +"]/tbody")).getText(); 	
-			System.out.println("Text in cell: " + table);
+
+		do {
+			String weekName = driver.findElement(By.xpath("/html/body/table[1]/tbody/tr[2]/td/table/tbody/tr/td[3]/span[2]")).getText();
+			weekNum = Integer.parseInt(weekName);
+			System.out.println(weekNum);
+			loopMethod(driver);	
 		}
-		
-		//driver.findElement(By.id("bNextWeek")).click();
-			
-//		String table = driver.findElement(By.xpath("/html/body/table[2]/tbody")).getText(); 
-//		/* List<WebElement> rows = table.findElements(By.tagName("tr")); */
-//		System.out.println("Text in cell: " + table);
-	
-		Thread.sleep(10000);
-		driver.close();
+		while(weekNum < 52);
+			System.out.println("No More Data");
+			driver.close();
+			System.exit(0);		
 	}
 		
 		
 		
+	}
+	public static void loopMethod(WebDriver driver) throws InterruptedException {
+		for(int i=1; i< 7;i++) {
+			driver.manage().timeouts().implicitlyWait(0, TimeUnit.MILLISECONDS);
+			Boolean isWholePresent = driver.findElements(By.className("columnTitles")).size() > 0;
+			driver.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
+			if(isWholePresent) {
+				driver.manage().timeouts().implicitlyWait(0, TimeUnit.MILLISECONDS);
+				Boolean isPresent = driver.findElements(By.xpath("/html/body/table["+i+"]/tbody/tr[1]")).size() > 0;
+				driver.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
+				//System.out.println(isPresent);
+				if(isPresent) {
+					String table = driver.findElement(By.xpath("/html/body/table["+ i +"]/tbody")).getText(); 	
+					System.out.println("Text in cell: " + table);
+				}
+				//If there is nothing on the day then moves on to the next day
+				continue;
+			}
+			else {
+				//If there is nothing on this Week then the system doesn't check the whole page and moves on to the next week.
+				break;
+			}
+		}
+
+	driver.findElement(By.xpath("//*[@id=\"bNextWeek\"]")).click();
+	Thread.sleep(1000);
 	}
 	
 	
